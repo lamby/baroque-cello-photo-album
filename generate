@@ -386,8 +386,10 @@ styles['BodyText'].alignment = TA_CENTER
 
 for style in ('h1', 'h2'):
     styles[style].alignment = TA_RIGHT
+    styles[style].fontSize *= 2
 
-contents.append(Paragraph("Baroque cello", styles['h1']))
+contents.append(Paragraph("Gilkes cello restoration", styles['h1']))
+contents.append(Spacer(1, 8))
 contents.append(Paragraph("Christmas 2011", styles['h2']))
 
 contents.append(PageBreak())
