@@ -383,8 +383,9 @@ contents = []
 
 styles = getSampleStyleSheet()
 styles['BodyText'].alignment = TA_CENTER
-styles['h1'].alignment = TA_RIGHT
-styles['h2'].alignment = TA_RIGHT
+
+for style in ('h1', 'h2'):
+    styles[style].alignment = TA_RIGHT
 
 contents.append(Paragraph("Baroque cello", styles['h1']))
 contents.append(Paragraph("Christmas 2011", styles['h2']))
