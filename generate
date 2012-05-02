@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os.path
+import itertools
 import subprocess
 
 from reportlab.platypus import SimpleDocTemplate, Image, Paragraph, \
@@ -11,7 +12,7 @@ from reportlab.lib.units import mm
 from reportlab.lib.pagesizes import A4
 
 DATA = (
-    ("One", (
+    (
         {
             'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/397090_888299903324_61300199_42891680_1004341526_n.jpg",
             'caption': "Showing current bridge height of 100mm (target is ~85mm)",
@@ -56,8 +57,8 @@ DATA = (
             'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/378160_888300636854_61300199_42891698_906091242_n.jpg",
             'caption': "Neck block",
         },
-    )),
-    ("Two", (
+    ),
+    (
         {
             'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/398874_889109895094_61300199_42897497_1538112439_n.jpg",
             'caption': "New strip of lining being glued onto ribs after steaming",
@@ -90,8 +91,8 @@ DATA = (
             'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/396265_889110214454_61300199_42897517_801748732_n.jpg",
             'caption': "Almost finished thinning the front (by approx 2mm).",
         },
-    )),
-    ("Three", (
+    ),
+    (
         {
             'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/383022_889804213674_61300199_42901541_1145397903_n.jpg",
             'caption': "Finishing off thinning the front.",
@@ -116,8 +117,8 @@ DATA = (
             'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/404794_889804348404_61300199_42901546_1231411031_n.jpg",
             'caption': "Re-gluing the bass bar (close-up)",
         },
-    )),
-    ("Four", (
+    ),
+    (
         {
             'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/396628_890413846964_61300199_42904009_66453882_n.jpg",
             'caption': "Tidying the belly",
@@ -150,8 +151,8 @@ DATA = (
             'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/398912_890414296064_61300199_42904016_264061016_n.jpg",
             'caption': "19 clamps finished; have 36 now.",
         },
-    )),
-    ("Five", (
+    ),
+    (
         {
             'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/397260_890939204144_61300199_42906833_1404752130_n.jpg",
             'caption': "Taking the bass bar down to it's final height at each end. Also added another stud at the centre join underneath the tailpiece (not visible)",
@@ -188,8 +189,8 @@ DATA = (
             'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/385971_890939653244_61300199_42906842_482999306_n.jpg",
             'caption': "Looking at bridge designs.",
         },
-    )),
-    ("Six", (
+    ),
+    (
         {
             'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/374758_891882219334_61300199_42913161_1086621759_n.jpg",
             'caption': "Checking the front is reattached properly.",
@@ -214,8 +215,8 @@ DATA = (
             'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/389405_891882379014_61300199_42913168_2070770106_n.jpg",
             'caption': "Another angle",
         },
-    )),
-    ("Seven", (
+    ),
+    (
         {
             'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/388406_892554047984_61300199_42917038_262850833_n.jpg",
             'caption': "Glued wedge to neck.",
@@ -256,8 +257,8 @@ DATA = (
             'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/386599_892554262554_61300199_42917047_1861101085_n.jpg",
             'caption': "A few more bridge ideas.",
         },
-    )),
-    ("Eight", (
+    ),
+    (
         {
             'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/408731_900001148934_61300199_42986925_1918418677_n.jpg",
             'caption': "Making the bridge from design.",
@@ -270,8 +271,8 @@ DATA = (
             'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/396187_900001278674_61300199_42986930_797000154_n.jpg",
             'caption': "Neck and fingerboard drying",
         },
-    )),
-    ("Nine", (
+    ),
+    (
         {
             'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/375342_900001338554_61300199_42986932_676295431_n.jpg",
             'caption': "Failed attempt at making a baroque endpin in a lathe.",
@@ -296,8 +297,8 @@ DATA = (
             'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/405321_900001642944_61300199_42986943_1946952683_n.jpg",
             'caption': "Roughly fitting the bridge. Only one string as no soundpost yet.",
         },
-    )),
-    ("Ten", (
+    ),
+    (
         {
             'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/407472_900001672884_61300199_42986944_569460848_n.jpg",
             'caption': "Bone nut. The smell when you grind this stuff is foul.",
@@ -322,8 +323,8 @@ DATA = (
             'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/390095_900001962304_61300199_42986955_1530507821_n.jpg",
             'caption': "Cello back in London. Shoulder is not completely finished but will do until I get more time.",
         },
-    )),
-    ("Eleven", (
+    ),
+    (
         {
             'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-prn1/533876_986107830454_61300199_43464192_1691739900_n.jpg",
             'caption': "Tidying edges of nut",
@@ -332,18 +333,25 @@ DATA = (
             'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-prn1/560295_986107950214_61300199_43464193_83213715_n.jpg",
             'caption': "New soundpost adjuster made, fiddling with location.",
         },
-    )),
+    ),
 )
 
 OUTPUT = 'baroque-cello-photos.pdf'
 IMAGE_DIR = 'images'
+
+def chunks(l, n):
+    """
+    Yield successive n-sized chunks from l.
+    """
+    for i in xrange(0, len(l), n):
+        yield l[i:i+n]
 
 try:
     os.mkdir(IMAGE_DIR)
 except OSError:
     pass
 
-for day, images in DATA:
+for images in DATA:
     for image in images:
         # Calculate filename for images
         image['filename'] = os.path.join(
@@ -379,19 +387,23 @@ styles.add(ParagraphStyle(name='center', alignment=TA_CENTER))
 contents.append(
     Paragraph("Baroque cello, Christmas 2011", styles['title']),
 )
+contents.append(PageBreak())
 
-for day, images in DATA:
-    for image in images:
-        contents.append(PageBreak())
-        contents.append(Image(
-            image['filename'],
-            width=doc.width,
-            height=doc.height,
-            kind='proportional'
-        ))
-        contents.append(Spacer(1, 12))
-        contents.append(
-            Paragraph(image['caption'], styles['center'])
-        )
+for day, images in enumerate(DATA):
+    for page_images in chunks(images, 2):
+        for image in page_images:
+            contents.append(Image(
+                image['filename'],
+                width=doc.width,
+                height=doc.height / 2.5,
+                kind='proportional',
+            ))
+
+            contents.append(Spacer(1, 8))
+            contents.append(Paragraph(
+                "Day %d: %s " % (day + 1, image['caption']),
+                styles['center'],
+            ))
+            contents.append(Spacer(1, 18))
 
 doc.build(contents)
