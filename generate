@@ -6,9 +6,9 @@ import subprocess
 
 from reportlab.platypus import SimpleDocTemplate, Image, Paragraph, \
     PageBreak, Spacer
-from reportlab.lib.enums import TA_CENTER
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.enums import TA_CENTER, TA_RIGHT
 from reportlab.lib.units import mm
+from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.pagesizes import A4
 
 DATA = (
@@ -382,11 +382,12 @@ doc = SimpleDocTemplate(
 contents = []
 
 styles = getSampleStyleSheet()
-styles.add(ParagraphStyle(name='center', alignment=TA_CENTER))
+styles['BodyText'].alignment = TA_CENTER
+styles['h1'].alignment = TA_RIGHT
+styles['h2'].alignment = TA_RIGHT
 
-contents.append(
-    Paragraph("Baroque cello, Christmas 2011", styles['title']),
-)
+contents.append(Paragraph("Baroque cello", styles['h1']))
+contents.append(Paragraph("Christmas 2011", styles['h2']))
 
 contents.append(PageBreak())
 contents.append(PageBreak())
@@ -404,7 +405,7 @@ for day, images in enumerate(DATA):
             contents.append(Spacer(1, 8))
             contents.append(Paragraph(
                 "Day %d: %s " % (day + 1, image['caption']),
-                styles['center'],
+                styles['BodyText'],
             ))
             contents.append(Spacer(1, 18))
 
