@@ -1,0 +1,397 @@
+#!/usr/bin/env python
+
+import os.path
+import subprocess
+
+from reportlab.platypus import SimpleDocTemplate, Image, Paragraph, \
+    PageBreak, Spacer
+from reportlab.lib.enums import TA_CENTER
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import mm
+from reportlab.lib.pagesizes import A4
+
+DATA = (
+    ("One", (
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/397090_888299903324_61300199_42891680_1004341526_n.jpg",
+            'caption': "Showing current bridge height of 100mm (target is ~85mm)",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/408661_888300023084_61300199_42891681_1587013647_n.jpg",
+            'caption': "Showing current bridge height and fingerboard length",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/396399_888300072984_61300199_42891682_1554667548_n.jpg",
+            'caption': "Showing current fingerboard length and boxwood tailpiece.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/383790_888300187754_61300199_42891684_54009251_n.jpg",
+            'caption': "Showing current (excessive) bridge height",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/379481_888300247634_61300199_42891686_1376219161_n.jpg",
+            'caption': "Showing current neck angle.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/379990_888300327474_61300199_42891688_1260513584_n.jpg",
+            'caption': "Strings, bridge, endpin and tailpiece off",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/400013_888300362404_61300199_42891690_409447516_n.jpg",
+            'caption': "Fingerboard and nut removed",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/392310_888300452224_61300199_42891693_656673475_n.jpg",
+            'caption': "Neck removed",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/374769_888300517094_61300199_42891694_321352445_n.jpg",
+            'caption': "Neck removed",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/395661_888300581964_61300199_42891696_293898289_n.jpg",
+            'caption': "Front removed",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/378160_888300636854_61300199_42891698_906091242_n.jpg",
+            'caption': "Neck block",
+        },
+    )),
+    ("Two", (
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/398874_889109895094_61300199_42897497_1538112439_n.jpg",
+            'caption': "New strip of lining being glued onto ribs after steaming",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/377096_889109930024_61300199_42897501_430811625_n.jpg",
+            'caption': "Ribs being re-glued to back and endpin block. This was always a bit unsatisfactory when glueing from the outside, but can do a proper job now the front is off. Strips on the left hand side are re-gluing a crack.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/383334_889109964954_61300199_42897503_1332183100_n.jpg",
+            'caption': "Neck block being re-glued to back and ribs. Had come away slightly.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/383334_889109964954_61300199_42897503_1332183100_n.jpg",
+            'caption': "Attaching lining next to endpin block back to ribs. Wood is being wedged against the neck block - not sure how to clamp this otherwise.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/388516_889110069744_61300199_42897507_385945150_n.jpg",
+            'caption': "Letting the back and ribs dry overnight.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/395484_889110109664_61300199_42897510_1565845053_n.jpg",
+            'caption': "After removing the bass bar. Was attached with PVA glue (!) but no lasting damage was done",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/395613_889110164554_61300199_42897514_976925307_n.jpg",
+            'caption': "Bass bar after removal. Height is 19mm.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/396265_889110214454_61300199_42897517_801748732_n.jpg",
+            'caption': "Almost finished thinning the front (by approx 2mm).",
+        },
+    )),
+    ("Three", (
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/383022_889804213674_61300199_42901541_1145397903_n.jpg",
+            'caption': "Finishing off thinning the front.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/393408_889804243614_61300199_42901542_720971889_n.jpg",
+            'caption': "Gluing some studs (not visible) set at 90 degrees to the grain to prevent a crack widening.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/403297_889804268564_61300199_42901543_514315791_n.jpg",
+            'caption': "Measuring the existing nut to source some replacement material",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/401118_889804288524_667568827_n.jpg",
+            'caption': "Finished thinning (19mm -> 14mm) and shortening (575mm -> 530mm) the bass bar.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/387596_889804318464_61300199_42901545_1834164957_n.jpg",
+            'caption': "Re-gluing bass bar. The previous bar was slightly sprung so that was just replicated; I have no opinion in that debate.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/404794_889804348404_61300199_42901546_1231411031_n.jpg",
+            'caption': "Re-gluing the bass bar (close-up)",
+        },
+    )),
+    ("Four", (
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/396628_890413846964_61300199_42904009_66453882_n.jpg",
+            'caption': "Tidying the belly",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/392126_890413866924_61300199_42904010_371839062_n.jpg",
+            'caption': "Paring down studs",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/380902_890413906844_61300199_42904011_116140054_n.jpg",
+            'caption': "Straightening fingerboard a little",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/387174_890413976704_61300199_42904012_549688364_n.jpg",
+            'caption': "Making some more clamps to glue the front back",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/406971_890414051554_61300199_42904013_1171539059_n.jpg",
+            'caption': "Making some more clamps to glue the front back.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/401334_890414131394_61300199_42904014_1535523891_n.jpg",
+            'caption': "Making some more clamps to glue the front back.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/406573_890414226204_61300199_42904015_1762916202_n.jpg",
+            'caption': "Some clamps in progress. Underneath the plywood is engine gasket material.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/398912_890414296064_61300199_42904016_264061016_n.jpg",
+            'caption': "19 clamps finished; have 36 now.",
+        },
+    )),
+    ("Five", (
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/397260_890939204144_61300199_42906833_1404752130_n.jpg",
+            'caption': "Taking the bass bar down to it's final height at each end. Also added another stud at the centre join underneath the tailpiece (not visible)",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/388690_890939254044_61300199_42906834_1084075127_n.jpg",
+            'caption': "Getting ready to glue the front back on.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/395177_890939298954_61300199_42906835_1655612777_n.jpg",
+            'caption': "Letting the front dry",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/405965_890939333884_61300199_42906836_188515612_n.jpg",
+            'caption': "Letting the front dry",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/387205_890939368814_61300199_42906837_593449000_n.jpg",
+            'caption': "Adding an oversized bit of maple to the back of the shoulder as it will be sticking further out from the block.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/377142_890939448654_61300199_42906838_511475068_n.jpg",
+            'caption': "Bone to make new nut arrived today.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/381598_890939503544_61300199_42906839_1326700484_n.jpg",
+            'caption': "Glue is mixed in the double saucepan in the background, maple in left hand box, boxwood in right hand box.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/378731_890939583384_61300199_42906840_954346855_n.jpg",
+            'caption': "Planning on making a rounded button out of this piece of mahogany if time.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/385971_890939653244_61300199_42906842_482999306_n.jpg",
+            'caption': "Looking at bridge designs.",
+        },
+    )),
+    ("Six", (
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/374758_891882219334_61300199_42913161_1086621759_n.jpg",
+            'caption': "Checking the front is reattached properly.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc6/166967_891882239294_61300199_42913162_383664489_n.jpg",
+            'caption': "Adjusting the back &lt;-&rt; front location of the neck and the angle with this extra piece. There will be an additional wedge.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/402598_891882249274_61300199_42913163_328233154_n.jpg",
+            'caption': "Making sure this fits perfectly",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/390280_891882279214_61300199_42913165_2014440030_n.jpg",
+            'caption': "Working out how much to shorten the fingerboard. Cutting the non-obvious end to allow correction of the outside edges of the fingerboard - they currently curve inwards in making it even thinner.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/405069_891882349074_61300199_42913167_1210513451_n.jpg",
+            'caption': "Demo of possible projection (70mm at bridge). The (modern) bridge I'm using here is a little high but you get the idea.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/389405_891882379014_61300199_42913168_2070770106_n.jpg",
+            'caption': "Another angle",
+        },
+    )),
+    ("Seven", (
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/388406_892554047984_61300199_42917038_262850833_n.jpg",
+            'caption': "Glued wedge to neck.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/396026_892554087904_61300199_42917039_1025486288_n.jpg",
+            'caption': "Checking it aligns properly. (Final position is slightly different)",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/393505_892554107864_61300199_42917040_305483779_n.jpg",
+            'caption': "Gluing neck back into mortise.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/388916_892554117844_61300199_42917041_889046368_n.jpg",
+            'caption': "Cutting fingerboard down.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc6/166969_892554147784_61300199_42917042_570400637_n.jpg",
+            'caption': "Heating ebony prior to gluing.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/397532_892554177724_61300199_42917043_967164052_n.jpg",
+            'caption': "Gluing fingerboard to neck. Surprisingly tricky.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/408821_892554192694_61300199_42917044_1554605161_n.jpg",
+            'caption': "Taken the obvious edges off the nut.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/388193_892554217644_61300199_42917045_229692642_n.jpg",
+            'caption': "Maple for the bridge. Probably an offcut from making a viola back.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/394126_892554232614_61300199_42917046_340443774_n.jpg",
+            'caption': "Messing about in Inkscape designing a bridge.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/386599_892554262554_61300199_42917047_1861101085_n.jpg",
+            'caption': "A few more bridge ideas.",
+        },
+    )),
+    ("Eight", (
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/408731_900001148934_61300199_42986925_1918418677_n.jpg",
+            'caption': "Making the bridge from design.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/405450_900001218794_61300199_42986926_393929645_n.jpg",
+            'caption': "Finishing off the bridge with files, etc.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/396187_900001278674_61300199_42986930_797000154_n.jpg",
+            'caption': "Neck and fingerboard drying",
+        },
+    )),
+    ("Nine", (
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/375342_900001338554_61300199_42986932_676295431_n.jpg",
+            'caption': "Failed attempt at making a baroque endpin in a lathe.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/391779_900001393444_61300199_42986933_836632631_n.jpg",
+            'caption': "Failed attempt at making an endpin (top), the original spiked endpin.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/390127_900001473284_61300199_42986936_2010290170_n.jpg",
+            'caption': "Fitting (WIP) baroque endpin to size.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/401649_900001518194_61300199_42986938_151126070_n.jpg",
+            'caption': "Finished 'baroque endpin'.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/378089_900001563104_61300199_42986940_1874220475_n.jpg",
+            'caption': "Roughly fitting the bridge. Only one string as no soundpost yet.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/405321_900001642944_61300199_42986943_1946952683_n.jpg",
+            'caption': "Roughly fitting the bridge. Only one string as no soundpost yet.",
+        },
+    )),
+    ("Ten", (
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/407472_900001672884_61300199_42986944_569460848_n.jpg",
+            'caption': "Bone nut. The smell when you grind this stuff is foul.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/399568_900001742744_61300199_42986946_1607758920_n.jpg",
+            'caption': "Soundpost",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/390482_900001817594_61300199_42986948_1474272724_n.jpg",
+            'caption': "Fitting soundpost.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/387246_900001842544_61300199_42986950_1452549597_n.jpg",
+            'caption': "Strings up to tension. Checking and adjusting string heights.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/393575_900001882464_61300199_42986951_1065350993_n.jpg",
+            'caption': "Cello back in London",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash4/390095_900001962304_61300199_42986955_1530507821_n.jpg",
+            'caption': "Cello back in London. Shoulder is not completely finished but will do until I get more time.",
+        },
+    )),
+    ("Eleven", (
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-prn1/533876_986107830454_61300199_43464192_1691739900_n.jpg",
+            'caption': "Tidying edges of nut",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-prn1/560295_986107950214_61300199_43464193_83213715_n.jpg",
+            'caption': "New soundpost adjuster made, fiddling with location.",
+        },
+    )),
+)
+
+OUTPUT = 'baroque-cello-photos.pdf'
+IMAGE_DIR = 'images'
+
+try:
+    os.mkdir(IMAGE_DIR)
+except OSError:
+    pass
+
+for day, images in DATA:
+    for image in images:
+        # Calculate filename for images
+        image['filename'] = os.path.join(
+            IMAGE_DIR,
+            os.path.basename(image['url']),
+        )
+
+        # Download image if it does not exist
+        if not os.path.exists(image['filename']):
+            print "I: Downloading %s" % image['url']
+
+            subprocess.check_call((
+                'wget',
+                '--quiet',
+                '-O', image['filename'],
+                image['url'],
+            ))
+
+doc = SimpleDocTemplate(
+    OUTPUT,
+    pagesize=A4,
+    rightMargin=72,
+    leftMargin=72,
+    topMargin=72,
+    bottomMargin=18
+)
+
+contents = []
+
+styles = getSampleStyleSheet()
+styles.add(ParagraphStyle(name='center', alignment=TA_CENTER))
+
+contents.append(
+    Paragraph("Baroque cello, Christmas 2011", styles['title']),
+)
+
+for day, images in DATA:
+    for image in images:
+        contents.append(PageBreak())
+        contents.append(Image(
+            image['filename'],
+            width=doc.width,
+            height=doc.height,
+            kind='proportional'
+        ))
+        contents.append(Spacer(1, 12))
+        contents.append(
+            Paragraph(image['caption'], styles['center'])
+        )
+
+doc.build(contents)
