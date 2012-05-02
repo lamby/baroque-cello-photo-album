@@ -387,6 +387,8 @@ styles.add(ParagraphStyle(name='center', alignment=TA_CENTER))
 contents.append(
     Paragraph("Baroque cello, Christmas 2011", styles['title']),
 )
+
+contents.append(PageBreak())
 contents.append(PageBreak())
 
 for day, images in enumerate(DATA):
