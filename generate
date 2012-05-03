@@ -334,6 +334,20 @@ DATA = (
             'caption': "New soundpost adjuster made, fiddling with location.",
         },
     ),
+    (
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash3/581160_994217318974_339784695_n.jpg",
+            'caption': "After tidying shoulder.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc6/148736_994217398814_61300199_43482591_1742193186_n.jpg",
+            'caption': "After tidying shoulder.",
+        },
+        {
+            'url': "https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-snc7/398833_994217458694_61300199_43482592_625552997_n.jpg",
+            'caption': "After tidying shoulder.",
+        },
+    ),
 )
 
 OUTPUT = 'baroque-cello-photos.pdf'
